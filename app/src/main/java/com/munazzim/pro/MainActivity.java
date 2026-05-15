@@ -282,3 +282,32 @@ public class MainActivity extends AppCompatActivity {
         injectPermissionStatus();
     }
 }
+class MainActivity : AppCompatActivity() {
+    private lateinit var webView: WebView
+    private val notificationReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val title = intent.getStringExtra("title") ?: ""
+            val body = intent.getStringExtra("body") ?: ""
+            val customData = intent.getStringExtra("customData") ?: ""
+            
+            // تمرير البيانات إلى JavaScript داخل WebView
+            webView.evaluateJavascript("""
+                window.onNotificationReceived({
+                    title: '$title',
+                    body: '$body',
+                    customData: '$customData'
+                });
+            """.trimIndent(), null)
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        registerReceiver(notificationReceiver, IntentFilter("NEW_NOTIFICATION"))
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(notificationReceiver)
+    }
+}
